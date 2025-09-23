@@ -69,7 +69,7 @@ const keys = {};
 document.addEventListener('keydown', e=>{
   if (e.code==='ArrowLeft') keys.left = true;
   if (e.code==='ArrowRight') keys.right = true;
-  if (e.code==='Space'){ launch(); }
+  if (e.code==='Space'){ started=true; hideOverlay(); launch(); }
   if (e.code==='KeyP'){ togglePause(); }
   if (e.code==='KeyR'){ resetAll(); }
 });
@@ -77,12 +77,21 @@ document.addEventListener('keyup', e=>{
   if (e.code==='ArrowLeft') keys.left = false;
   if (e.code==='ArrowRight') keys.right = false;
 });
-document.getElementById('btnLeft').onpointerdown=()=>keys.left=true;
-document.getElementById('btnRight').onpointerdown=()=>keys.right=true;
-document.getElementById('btnLaunch').onpointerdown=()=>launch();
+document.getElementById('btnLeft').addEventListener('pointerdown',()=>keys.left=true);
+document.getElementById('btnLeft').addEventListener('pointerup',()=>keys.left=false);
+document.getElementById('btnRight').addEventListener('pointerdown',()=>keys.right=true);
+document.getElementById('btnRight').addEventListener('pointerup',()=>keys.right=false);
+document.getElementById('btnLaunch').addEventListener('click', ()=>{ started=true; hideOverlay(); launch(); });
 document.getElementById('btnPause').onclick=()=>togglePause();
 document.getElementById('btnRestart').onclick=()=>resetAll();
 document.getElementById('ovBtn').onclick=()=>{ started=true; hideOverlay(); launch(); };
+
+// Mouse move support
+canvas.addEventListener('mousemove', (e)=>{
+  const r = canvas.getBoundingClientRect();
+  const x = (e.clientX - r.left) * (canvas.width / r.width);
+  paddle.x = Math.max(8, Math.min(W - paddle.w - 8, x - paddle.w/2));
+});
 
 function launch(){
   balls.forEach(b=>{
@@ -106,6 +115,8 @@ function spawnDrop(x,y){
 
 // Step
 function step(dt){
+  if (!started || paused){ render(); return; }
+
   // paddle
   const pv = 6.2;
   if (keys.left) paddle.x -= pv;
@@ -188,6 +199,14 @@ function step(dt){
   if (remaining===0){
     level++; buildLevel(level);
     balls=[ newBall(true) ];
+
+    // piccola progressione velocità
+    balls.forEach(b=>{
+      const s = Math.hypot(b.vx||G.speed, b.vy||G.speed) * 1.08;
+      const ang = Math.atan2(b.vy||-G.speed, b.vx||G.speed);
+      b.vx = s * Math.cos(ang);
+      b.vy = s * Math.sin(ang);
+    });
     updateHUD();
   }
 }
@@ -228,13 +247,12 @@ function render(){
   }
 }
 
+// Loop
 let last=0;
 function loop(ts){
-  if (!started || paused){ render(); requestAnimationFrame(loop); return; }
   const dt = Math.min(32, ts - (last||ts)); last = ts;
   step(dt); render(); requestAnimationFrame(loop);
 }
 updateHUD();
-document.getElementById('ovBtn').textContent='Gioca';
 document.getElementById('overlay').classList.remove('hidden');
 requestAnimationFrame(loop);

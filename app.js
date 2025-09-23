@@ -1,39 +1,32 @@
-/* Breakout — pezzaliAPP (MIT) — v5 responsive + iPhone input */
+/* Breakout — pezzaliAPP v6 */
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d', {alpha:false});
-
-// ------- Virtual world (360x640) scaled to any screen -------
-const VW = 360, VH = 640; // virtual units
+const VW = 360, VH = 640;
 function resizeCanvas(){
   const dpr = Math.max(1, Math.min(2, window.devicePixelRatio||1));
   const rect = canvas.getBoundingClientRect();
   canvas.width  = Math.round(rect.width  * dpr);
   canvas.height = Math.round(rect.height * dpr);
-  // scale drawing from virtual pixels to device pixels
   const sx = canvas.width  / VW;
   const sy = canvas.height / VH;
-  ctx.setTransform(sx, 0, 0, sy, 0, 0);
+  ctx.setTransform(sx,0,0,sy,0,0);
 }
 new ResizeObserver(resizeCanvas).observe(canvas);
-window.addEventListener('orientationchange', ()=>setTimeout(resizeCanvas, 150));
+window.addEventListener('orientationchange', ()=>setTimeout(resizeCanvas,150));
+window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-// Map clientX/clientY to virtual coords
-function toVirtual(x, y){
+function toVirtual(x,y){
   const r = canvas.getBoundingClientRect();
-  const vx = (x - r.left) * VW / r.width;
-  const vy = (y - r.top ) * VH / r.height;
-  return {vx, vy};
+  return { vx: (x - r.left)*VW/r.width, vy: (y - r.top)*VH/r.height };
 }
 
-// ------- Game constants in virtual units -------
 const G = { paddleW: 88, paddleH: 14, ballR: 6, speed: 4.5, lives: 3 };
 const COLS = 10, ROWS = 6, BW = 30, BH = 16, BGap = 4;
 const BOffX = Math.floor((VW - (COLS*BW + (COLS-1)*BGap))/2);
 const BOffY = 80;
 const palette = ['#63e6ff','#4dabf7','#845ef7','#ffd43b','#ffa94d','#51cf66','#ff6b6b','#ced4da'];
 
-// ------- State -------
 let score=0, lives=G.lives, level=1, paused=false, started=false;
 let paddle = { x: VW/2 - G.paddleW/2, y: VH - 36, w:G.paddleW, h:G.paddleH };
 let bricks=[], drops=[], balls=[];
@@ -65,9 +58,8 @@ function resetAll(){
 buildLevel(level);
 balls=[ newBall(true) ];
 
-// ------- Overlay & HUD -------
 function hideOverlay(){ document.getElementById('overlay').classList.add('hidden'); canvas.focus(); }
-function showOverlay(title,text,btn){ 
+function showOverlay(title,text,btn){
   document.getElementById('ovTitle').textContent=title;
   document.getElementById('ovText').innerHTML=text;
   document.getElementById('ovBtn').textContent=btn||'Gioca';
@@ -77,9 +69,11 @@ function updateHUD(){
   document.getElementById('score').textContent=score;
   document.getElementById('lives').textContent=lives;
   document.getElementById('level').textContent=level;
+  document.getElementById('hPts').textContent=score;
+  document.getElementById('hLiv').textContent='L'+level;
+  document.getElementById('hVit').textContent='♥'+lives;
 }
 
-// ------- Input (keyboard + touch/mouse) -------
 const keys = {left:false,right:false};
 function keyIsGame(code){ return ['ArrowLeft','ArrowRight','Space','KeyP','KeyR'].includes(code); }
 window.addEventListener('keydown', e=>{
@@ -102,20 +96,10 @@ function movePaddleToClient(clientX){
   const {vx} = toVirtual(clientX, 0);
   paddle.x = Math.max(8, Math.min(VW - paddle.w - 8, vx - paddle.w/2));
 }
-canvas.addEventListener('pointerdown', e=>{
-  started=true; hideOverlay(); launch();
-  movePaddleToClient(e.clientX);
-  e.preventDefault();
-},{passive:false});
-// Smooth: follow finger even without press (iOS)
-canvas.addEventListener('pointermove', e=>{
-  movePaddleToClient(e.clientX);
-  e.preventDefault();
-},{passive:false});
-canvas.addEventListener('pointerup', ()=>{ /* no-op */ });
+canvas.addEventListener('pointerdown', e=>{ started=true; hideOverlay(); launch(); movePaddleToClient(e.clientX); e.preventDefault(); }, {passive:false});
+canvas.addEventListener('pointermove', e=>{ movePaddleToClient(e.clientX); e.preventDefault(); }, {passive:false});
 
-// Mobile buttons (press & hold)
-function hold(dir){ const iv=setInterval(()=>{ if(dir<0) keys.left=true; else keys.right=true; }, 16); return ()=>{clearInterval(iv); keys.left=false; keys.right=false;}; }
+function hold(dir){ const iv=setInterval(()=>{ if(dir<0) keys.left=true; else keys.right=true; },16); return ()=>{clearInterval(iv); keys.left=false; keys.right=false;}; }
 let stopL=null, stopR=null;
 document.getElementById('btnLeft').addEventListener('pointerdown', e=>{stopL=hold(-1); e.preventDefault();},{passive:false});
 document.getElementById('btnLeft').addEventListener('pointerup',   ()=>{if(stopL)stopL();});
@@ -126,7 +110,6 @@ document.getElementById('btnPause').onclick=()=>togglePause();
 document.getElementById('btnRestart').onclick=()=>resetAll();
 document.getElementById('ovBtn').onclick=()=>{ started=true; hideOverlay(); launch(); };
 
-// ------- Game mechanics -------
 function launch(){
   balls.forEach(b=>{
     if (b.stuck){
@@ -229,7 +212,6 @@ function step(dt){
   }
 }
 
-// ------- Render & Loop -------
 function render(){
   ctx.fillStyle='#0e1429'; ctx.fillRect(0,0,VW,VH);
   ctx.fillStyle='#151b31'; ctx.fillRect(0,0,VW,48);

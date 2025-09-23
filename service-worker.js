@@ -1,5 +1,5 @@
 // Breakout PWA — Service Worker
-const CACHE = 'breakout-pezzaliapp-v5';
+const CACHE = 'breakout-pezzaliapp-v6';
 const ASSETS = [
   './','./index.html','./style.css','./app.js','./manifest.json',
   './icons/icon-192.png','./icons/icon-512.png'

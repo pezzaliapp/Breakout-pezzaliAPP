@@ -12,46 +12,43 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="stylesheet" href="style.css">
+  <script>
+    function setVH(){ document.documentElement.style.setProperty('--vh', (window.innerHeight*0.01) + 'px'); }
+    window.addEventListener('load', setVH); window.addEventListener('resize', setVH); window.addEventListener('orientationchange', ()=>setTimeout(setVH,150));
+  </script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <img src="icons/icon-192.png" alt="Icona" />
-      <h1>Breakout — pezzaliAPP</h1>
-    </div>
-  </header>
-
-  <main class="layout">
-    <section class="left">
-      <div class="game-wrap">
-        <canvas id="game" tabindex="0" aria-label="Campo di gioco Breakout"></canvas>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <img src="icons/icon-192.png" alt="Icona" />
+        <h1>Breakout — pezzaliAPP</h1>
       </div>
+      <div class="hud-mini">
+        <span id="hPts">0</span> • <span id="hLiv">1</span> • <span id="hVit">3</span>
+      </div>
+    </header>
+
+    <main class="stage">
+      <canvas id="game" tabindex="0" aria-label="Campo di gioco Breakout"></canvas>
+
       <div class="mobile-controls">
         <button id="btnLeft" type="button" aria-label="Sinistra">◀︎</button>
         <button id="btnLaunch" type="button" aria-label="Lancia">⤴︎</button>
         <button id="btnRight" type="button" aria-label="Destra">▶︎</button>
       </div>
-    </section>
-    <section class="right">
+    </main>
+
+    <footer class="dock">
       <div class="panel">
-        <h2>Stato</h2>
-        <p>Punteggio: <strong id="score">0</strong></p>
-        <p>Vite: <strong id="lives">3</strong></p>
-        <p>Livello: <strong id="level">1</strong></p>
+        <strong>Stato</strong> — Punti <span id="score">0</span> • Vite <span id="lives">3</span> • Livello <span id="level">1</span>
       </div>
-      <div class="panel">
-        <h2>Comandi</h2>
-        <ul class="keys">
-          <li>◀︎/▶︎: Muovi • Mouse: segui palla</li>
-          <li>Spazio/⤴︎: Lancia • P: Pausa • R: Restart</li>
-          <li>Touch: sfiora/trascina sul canvas</li>
-        </ul>
+      <div class="panel actions">
+        <button id="btnPause" class="full" type="button">⏸ Pausa</button>
+        <button id="btnRestart" class="ghost" type="button">↺ Restart</button>
       </div>
-      <button id="btnPause" class="full" type="button">⏸ Pausa</button>
-      <button id="btnRestart" class="ghost" type="button">↺ Restart</button>
-      <p class="muted small">© 2025 pezzaliAPP — MIT • Offline-ready • No-cloud</p>
-    </section>
-  </main>
+    </footer>
+  </div>
 
   <div id="overlay" class="overlay" role="dialog" aria-modal="true">
     <div class="card">
@@ -63,6 +60,9 @@
 
   <script src="app.js"></script>
   <script>
+    document.addEventListener('touchmove', e => e.preventDefault(), {passive:false});
+    document.addEventListener('gesturestart', e => e.preventDefault());
+    document.addEventListener('dblclick', e => e.preventDefault(), {passive:false});
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js'));
     }

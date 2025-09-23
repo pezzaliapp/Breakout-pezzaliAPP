@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+  <meta name="theme-color" content="#0b5fff" />
+  <title>Breakout — pezzaliAPP</title>
+  <meta name="description" content="Breakout/Arkanoid PWA: offline, installabile, tastiera e touch.">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="icons/icon-192.png" alt="Icona" />
+      <h1>Breakout — pezzaliAPP</h1>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="left">
+      <canvas id="game" width="360" height="640" aria-label="Campo di gioco Breakout"></canvas>
+      <div class="mobile-controls">
+        <button id="btnLeft" aria-label="Sinistra">◀︎</button>
+        <button id="btnRight" aria-label="Destra">▶︎</button>
+        <button id="btnLaunch" aria-label="Lancia">⤴︎</button>
+      </div>
+    </section>
+    <section class="right">
+      <div class="panel">
+        <h2>Stato</h2>
+        <p>Punteggio: <strong id="score">0</strong></p>
+        <p>Vite: <strong id="lives">3</strong></p>
+        <p>Livello: <strong id="level">1</strong></p>
+      </div>
+      <div class="panel">
+        <h2>Comandi</h2>
+        <ul class="keys">
+          <li>◀︎/▶︎: Muovi</li>
+          <li>Spazio: Lancia</li>
+          <li>P: Pausa</li>
+          <li>R: Restart</li>
+        </ul>
+      </div>
+      <button id="btnPause" class="full">⏸ Pausa</button>
+      <button id="btnRestart" class="ghost">↺ Restart</button>
+      <p class="muted small">© 2025 pezzaliAPP — MIT • Offline-ready • No-cloud</p>
+      <p class="muted small"><a href="readme.html">Guida (readme)</a></p>
+    </section>
+  </main>
+
+  <div id="overlay" class="overlay" role="dialog" aria-modal="true">
+    <div class="card">
+      <h2 id="ovTitle">Breakout — pezzaliAPP</h2>
+      <p id="ovText">Premi <strong>Spazio</strong> o il bottone per lanciare.</p>
+      <button id="ovBtn">Gioca</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js'));
+    }
+  </script>
+</body>
+</html>

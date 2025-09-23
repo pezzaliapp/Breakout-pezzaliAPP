@@ -1,6 +1,6 @@
+:root{--vh:1vh; --safe-bottom: env(safe-area-inset-bottom, 0px)}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-:root{--vh:1vh}
 @supports (height: 100svh){ html,body{height:100svh} }
 @supports not (height: 100svh){ html,body{height:calc(var(--vh)*100)} }
 html,body{overflow:hidden;background:#0f1320;color:#e9eef5;-webkit-text-size-adjust:100%}
@@ -16,7 +16,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-s
 .layout{display:grid;grid-template-columns:1fr 320px;gap:16px;max-width:1200px;margin:0 auto;padding:12px}
 .left{display:flex;flex-direction:column;align-items:center;gap:12px}
 .right{display:flex;flex-direction:column;gap:12px;max-height:100%;overflow:auto}
-.game-wrap{width:100%;max-width:560px;aspect-ratio:9/16;border-radius:12px;overflow:hidden;display:grid;place-items:center}
+.game-wrap{width:100%;max-width:560px;aspect-ratio:9/16;border-radius:12px;overflow:hidden;display:grid;place-items:center;margin-bottom:var(--safe-bottom)}
 canvas{width:100%;height:100%;background:#12182a;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.35);outline:none;touch-action:none}
 
 .panel{background:#151b31;border:1px solid rgba(255,255,255,.06);padding:12px;border-radius:12px}
@@ -37,8 +37,6 @@ canvas{width:100%;height:100%;background:#12182a;border-radius:12px;box-shadow:0
 .mode-grid{display:grid;grid-template-columns:1fr;gap:10px}
 .mode-btn{font-size:18px;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:#1b2342;color:#fff}
 .mode-btn.ghost{background:transparent}
-
-body.laptop .mobile-controls{ display:none }
 
 @media (max-width:860px){
   .layout{grid-template-columns:1fr}

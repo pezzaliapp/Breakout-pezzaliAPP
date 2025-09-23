@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <meta name="theme-color" content="#0b5fff" />
   <title>Breakout — pezzaliAPP</title>
   <meta name="description" content="Breakout/Arkanoid PWA: offline, installabile, tastiera/mouse/touch.">
@@ -23,11 +23,13 @@
 
   <main class="layout">
     <section class="left">
-      <canvas id="game" width="360" height="640" tabindex="0" aria-label="Campo di gioco Breakout"></canvas>
+      <div class="game-wrap">
+        <canvas id="game" tabindex="0" aria-label="Campo di gioco Breakout"></canvas>
+      </div>
       <div class="mobile-controls">
-        <button id="btnLeft" aria-label="Sinistra">◀︎</button>
-        <button id="btnRight" aria-label="Destra">▶︎</button>
-        <button id="btnLaunch" aria-label="Lancia">⤴︎</button>
+        <button id="btnLeft" type="button" aria-label="Sinistra">◀︎</button>
+        <button id="btnLaunch" type="button" aria-label="Lancia">⤴︎</button>
+        <button id="btnRight" type="button" aria-label="Destra">▶︎</button>
       </div>
     </section>
     <section class="right">
@@ -41,14 +43,13 @@
         <h2>Comandi</h2>
         <ul class="keys">
           <li>◀︎/▶︎: Muovi • Mouse: segui palla</li>
-          <li>Spazio: Lancia</li>
-          <li>P: Pausa • R: Restart</li>
+          <li>Spazio/⤴︎: Lancia • P: Pausa • R: Restart</li>
+          <li>Touch: sfiora/trascina sul canvas</li>
         </ul>
       </div>
-      <button id="btnPause" class="full">⏸ Pausa</button>
-      <button id="btnRestart" class="ghost">↺ Restart</button>
+      <button id="btnPause" class="full" type="button">⏸ Pausa</button>
+      <button id="btnRestart" class="ghost" type="button">↺ Restart</button>
       <p class="muted small">© 2025 pezzaliAPP — MIT • Offline-ready • No-cloud</p>
-      <p class="muted small"><a href="readme.html">Guida (readme)</a></p>
     </section>
   </main>
 
@@ -56,7 +57,7 @@
     <div class="card">
       <h2 id="ovTitle">Breakout — pezzaliAPP</h2>
       <p id="ovText">Tocca o premi <strong>Spazio</strong> per iniziare.</p>
-      <button id="ovBtn">Gioca</button>
+      <button id="ovBtn" type="button">Gioca</button>
     </div>
   </div>
 

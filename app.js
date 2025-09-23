@@ -1,19 +1,44 @@
-/* Breakout — pezzaliAPP (MIT) — v4 iPhone fixes */
+/* Breakout — pezzaliAPP (MIT) — v5 responsive + iPhone input */
 const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext('2d', {alpha:false});
 
-const W = canvas.width, H = canvas.height;
+// ------- Virtual world (360x640) scaled to any screen -------
+const VW = 360, VH = 640; // virtual units
+function resizeCanvas(){
+  const dpr = Math.max(1, Math.min(2, window.devicePixelRatio||1));
+  const rect = canvas.getBoundingClientRect();
+  canvas.width  = Math.round(rect.width  * dpr);
+  canvas.height = Math.round(rect.height * dpr);
+  // scale drawing from virtual pixels to device pixels
+  const sx = canvas.width  / VW;
+  const sy = canvas.height / VH;
+  ctx.setTransform(sx, 0, 0, sy, 0, 0);
+}
+new ResizeObserver(resizeCanvas).observe(canvas);
+window.addEventListener('orientationchange', ()=>setTimeout(resizeCanvas, 150));
+resizeCanvas();
+
+// Map clientX/clientY to virtual coords
+function toVirtual(x, y){
+  const r = canvas.getBoundingClientRect();
+  const vx = (x - r.left) * VW / r.width;
+  const vy = (y - r.top ) * VH / r.height;
+  return {vx, vy};
+}
+
+// ------- Game constants in virtual units -------
 const G = { paddleW: 88, paddleH: 14, ballR: 6, speed: 4.5, lives: 3 };
 const COLS = 10, ROWS = 6, BW = 30, BH = 16, BGap = 4;
-const BOffX = Math.floor((W - (COLS*BW + (COLS-1)*BGap))/2);
+const BOffX = Math.floor((VW - (COLS*BW + (COLS-1)*BGap))/2);
 const BOffY = 80;
 const palette = ['#63e6ff','#4dabf7','#845ef7','#ffd43b','#ffa94d','#51cf66','#ff6b6b','#ced4da'];
 
+// ------- State -------
 let score=0, lives=G.lives, level=1, paused=false, started=false;
-let paddle = { x: W/2 - G.paddleW/2, y: H - 36, w:G.paddleW, h:G.paddleH };
+let paddle = { x: VW/2 - G.paddleW/2, y: VH - 36, w:G.paddleW, h:G.paddleH };
 let bricks=[], drops=[], balls=[];
 
-function newBall(stuck=true){ return { x: W/2, y: paddle.y - G.ballR - 1, r:G.ballR, vx:0, vy:0, stuck }; }
+function newBall(stuck=true){ return { x: VW/2, y: paddle.y - G.ballR - 1, r:G.ballR, vx:0, vy:0, stuck }; }
 
 function buildLevel(n){
   bricks = [];
@@ -40,7 +65,8 @@ function resetAll(){
 buildLevel(level);
 balls=[ newBall(true) ];
 
-function hideOverlay(){ document.getElementById('overlay').classList.add('hidden'); }
+// ------- Overlay & HUD -------
+function hideOverlay(){ document.getElementById('overlay').classList.add('hidden'); canvas.focus(); }
 function showOverlay(title,text,btn){ 
   document.getElementById('ovTitle').textContent=title;
   document.getElementById('ovText').innerHTML=text;
@@ -53,43 +79,43 @@ function updateHUD(){
   document.getElementById('level').textContent=level;
 }
 
-// INPUT
+// ------- Input (keyboard + touch/mouse) -------
 const keys = {left:false,right:false};
-function keyIsGame(e){ return ['ArrowLeft','ArrowRight','Space','KeyP','KeyR'].includes(e.code); }
+function keyIsGame(code){ return ['ArrowLeft','ArrowRight','Space','KeyP','KeyR'].includes(code); }
 window.addEventListener('keydown', e=>{
-  if (!keyIsGame(e)) return;
+  if(!keyIsGame(e.code)) return;
   e.preventDefault();
   if (e.code==='ArrowLeft') keys.left=true;
   if (e.code==='ArrowRight') keys.right=true;
   if (e.code==='Space'){ started=true; hideOverlay(); launch(); }
   if (e.code==='KeyP') togglePause();
   if (e.code==='KeyR') resetAll();
-}, {passive:false});
+},{passive:false});
 window.addEventListener('keyup', e=>{
-  if (!keyIsGame(e)) return;
+  if(!keyIsGame(e.code)) return;
   e.preventDefault();
   if (e.code==='ArrowLeft') keys.left=false;
   if (e.code==='ArrowRight') keys.right=false;
-}, {passive:false});
+},{passive:false});
 
-canvas.addEventListener('pointerdown', (e)=>{
-  started=true; hideOverlay(); launch();
-  movePaddleTo(e.clientX);
-  e.preventDefault();
-}, {passive:false});
-canvas.addEventListener('pointermove', (e)=>{
-  if (e.pressure===0 && e.buttons===0) return;
-  movePaddleTo(e.clientX);
-  e.preventDefault();
-}, {passive:false});
-function movePaddleTo(clientX){
-  const r = canvas.getBoundingClientRect();
-  const x = (clientX - r.left) * (canvas.width / r.width);
-  paddle.x = Math.max(8, Math.min(W - paddle.w - 8, x - paddle.w/2));
+function movePaddleToClient(clientX){
+  const {vx} = toVirtual(clientX, 0);
+  paddle.x = Math.max(8, Math.min(VW - paddle.w - 8, vx - paddle.w/2));
 }
+canvas.addEventListener('pointerdown', e=>{
+  started=true; hideOverlay(); launch();
+  movePaddleToClient(e.clientX);
+  e.preventDefault();
+},{passive:false});
+// Smooth: follow finger even without press (iOS)
+canvas.addEventListener('pointermove', e=>{
+  movePaddleToClient(e.clientX);
+  e.preventDefault();
+},{passive:false});
+canvas.addEventListener('pointerup', ()=>{ /* no-op */ });
 
-// Buttons press & hold
-function hold(dir){ const iv=setInterval(()=>{ if(dir<0) keys.left=true; else keys.right=true; },16); return ()=>{clearInterval(iv); keys.left=false; keys.right=false;}; }
+// Mobile buttons (press & hold)
+function hold(dir){ const iv=setInterval(()=>{ if(dir<0) keys.left=true; else keys.right=true; }, 16); return ()=>{clearInterval(iv); keys.left=false; keys.right=false;}; }
 let stopL=null, stopR=null;
 document.getElementById('btnLeft').addEventListener('pointerdown', e=>{stopL=hold(-1); e.preventDefault();},{passive:false});
 document.getElementById('btnLeft').addEventListener('pointerup',   ()=>{if(stopL)stopL();});
@@ -100,6 +126,7 @@ document.getElementById('btnPause').onclick=()=>togglePause();
 document.getElementById('btnRestart').onclick=()=>resetAll();
 document.getElementById('ovBtn').onclick=()=>{ started=true; hideOverlay(); launch(); };
 
+// ------- Game mechanics -------
 function launch(){
   balls.forEach(b=>{
     if (b.stuck){
@@ -122,14 +149,14 @@ function step(dt){
   const pv = 6.2;
   if (keys.left) paddle.x -= pv;
   if (keys.right) paddle.x += pv;
-  paddle.x = Math.max(8, Math.min(W - paddle.w - 8, paddle.x));
+  paddle.x = Math.max(8, Math.min(VW - paddle.w - 8, paddle.x));
 
   for (const b of [...balls]){
     if (b.stuck){ b.x = paddle.x + paddle.w/2; b.y = paddle.y - b.r - 1; continue; }
     b.x += b.vx; b.y += b.vy;
 
     if (b.x < b.r) { b.x = b.r; b.vx = Math.abs(b.vx); }
-    if (b.x > W - b.r) { b.x = W - b.r; b.vx = -Math.abs(b.vx); }
+    if (b.x > VW - b.r) { b.x = VW - b.r; b.vx = -Math.abs(b.vx); }
     if (b.y < b.r + 48) { b.y = b.r + 48; b.vy = Math.abs(b.vy); }
 
     if (b.y > paddle.y - b.r && b.y < paddle.y + G.paddleH && b.x > paddle.x && b.x < paddle.x + paddle.w){
@@ -160,7 +187,7 @@ function step(dt){
       }
     }
 
-    if (b.y - b.r > H){
+    if (b.y - b.r > VH){
       const i = balls.indexOf(b);
       if (i>=0) balls.splice(i,1);
     }
@@ -174,7 +201,7 @@ function step(dt){
 
   for (const d of drops){
     d.y += d.vy;
-    if (d.y > H+20) d.dead=true;
+    if (d.y > VH+20) d.dead=true;
     if (d.y > paddle.y && d.x > paddle.x && d.x < paddle.x + paddle.w){
       d.dead=true;
       if (d.kind==='L') paddle.w = Math.min((paddle.w||G.paddleW)+24, 140);
@@ -202,9 +229,10 @@ function step(dt){
   }
 }
 
+// ------- Render & Loop -------
 function render(){
-  ctx.fillStyle='#0e1429'; ctx.fillRect(0,0,W,H);
-  ctx.fillStyle='#151b31'; ctx.fillRect(0,0,W,48);
+  ctx.fillStyle='#0e1429'; ctx.fillRect(0,0,VW,VH);
+  ctx.fillStyle='#151b31'; ctx.fillRect(0,0,VW,48);
   ctx.fillStyle='#e9eef5'; ctx.font='14px system-ui';
   ctx.fillText(`Punti: ${score}`, 12, 30);
   ctx.fillText(`Vite: ${lives}`, 120, 30);

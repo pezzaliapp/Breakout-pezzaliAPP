@@ -1,8 +1,8 @@
 // Breakout PWA — Service Worker
-const CACHE = 'breakout-pezzaliapp-v4';
+const CACHE = 'breakout-pezzaliapp-v5';
 const ASSETS = [
   './','./index.html','./style.css','./app.js','./manifest.json',
-  './readme.html','./icons/icon-192.png','./icons/icon-512.png'
+  './icons/icon-192.png','./icons/icon-512.png'
 ];
 self.addEventListener('install', e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()));

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
   <meta name="theme-color" content="#0b5fff" />
   <title>Breakout — pezzaliAPP</title>
-  <meta name="description" content="Breakout/Arkanoid PWA: offline, installabile, tastiera e touch.">
+  <meta name="description" content="Breakout/Arkanoid PWA: offline, installabile, tastiera/mouse/touch.">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -23,7 +23,7 @@
 
   <main class="layout">
     <section class="left">
-      <canvas id="game" width="360" height="640" aria-label="Campo di gioco Breakout"></canvas>
+      <canvas id="game" width="360" height="640" tabindex="0" aria-label="Campo di gioco Breakout"></canvas>
       <div class="mobile-controls">
         <button id="btnLeft" aria-label="Sinistra">◀︎</button>
         <button id="btnRight" aria-label="Destra">▶︎</button>
@@ -40,10 +40,9 @@
       <div class="panel">
         <h2>Comandi</h2>
         <ul class="keys">
-          <li>◀︎/▶︎: Muovi</li>
+          <li>◀︎/▶︎: Muovi • Mouse: segui palla</li>
           <li>Spazio: Lancia</li>
-          <li>P: Pausa</li>
-          <li>R: Restart</li>
+          <li>P: Pausa • R: Restart</li>
         </ul>
       </div>
       <button id="btnPause" class="full">⏸ Pausa</button>
@@ -56,7 +55,7 @@
   <div id="overlay" class="overlay" role="dialog" aria-modal="true">
     <div class="card">
       <h2 id="ovTitle">Breakout — pezzaliAPP</h2>
-      <p id="ovText">Premi <strong>Spazio</strong> o il bottone per lanciare.</p>
+      <p id="ovText">Tocca o premi <strong>Spazio</strong> per iniziare.</p>
       <button id="ovBtn">Gioca</button>
     </div>
   </div>

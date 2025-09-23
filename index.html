@@ -14,7 +14,8 @@
   <link rel="stylesheet" href="style.css">
   <script>
     function setVH(){ document.documentElement.style.setProperty('--vh', (window.innerHeight*0.01) + 'px'); }
-    window.addEventListener('load', setVH); window.addEventListener('resize', setVH); window.addEventListener('orientationchange', ()=>setTimeout(setVH,150));
+    addEventListener('load', setVH); addEventListener('resize', setVH);
+    addEventListener('orientationchange', ()=>setTimeout(setVH,150));
   </script>
 </head>
 <body>
@@ -25,32 +26,69 @@
         <h1>Breakout — pezzaliAPP</h1>
       </div>
       <div class="hud-mini">
-        <span id="hPts">0</span> • <span id="hLiv">1</span> • <span id="hVit">3</span>
+        <span id="hPts">0</span> • <span id="hLiv">L1</span> • <span id="hVit">♥3</span>
       </div>
+      <div class="mode-menu">
+        <label for="modeSelect" class="sr-only">Modalità</label>
+        <select id="modeSelect" title="Modalità dispositivo">
+          <option value="auto">Auto</option>
+          <option value="iphone">iPhone</option>
+          <option value="samsung">Samsung / Android</option>
+          <option value="laptop">Laptop / Desktop</option>
+        </select>
+      </div>
+      <button class="drawer-toggle" id="drawerToggle" aria-controls="drawer" aria-expanded="false">☰</button>
     </header>
 
-    <main class="stage">
-      <canvas id="game" tabindex="0" aria-label="Campo di gioco Breakout"></canvas>
+    <main class="layout">
+      <section class="left">
+        <div class="game-wrap">
+          <canvas id="game" tabindex="0" aria-label="Campo di gioco Breakout"></canvas>
+        </div>
+        <div class="mobile-controls" aria-label="Controlli touch">
+          <button id="btnLeft" type="button" aria-label="Sinistra">◀︎</button>
+          <button id="btnLaunch" type="button" aria-label="Lancia">⤴︎</button>
+          <button id="btnRight" type="button" aria-label="Destra">▶︎</button>
+        </div>
+      </section>
 
-      <div class="mobile-controls">
-        <button id="btnLeft" type="button" aria-label="Sinistra">◀︎</button>
-        <button id="btnLaunch" type="button" aria-label="Lancia">⤴︎</button>
-        <button id="btnRight" type="button" aria-label="Destra">▶︎</button>
-      </div>
+      <aside class="right" id="drawer">
+        <div class="panel">
+          <h2>Stato</h2>
+          <p>Punteggio: <strong id="score">0</strong></p>
+          <p>Vite: <strong id="lives">3</strong></p>
+          <p>Livello: <strong id="level">1</strong></p>
+        </div>
+        <div class="panel">
+          <h2>Comandi</h2>
+          <ul class="keys">
+            <li>◀︎/▶︎: Muovi • Mouse: segui palla</li>
+            <li>Spazio/⤴︎: Lancia • P: Pausa • R: Restart</li>
+            <li>Touch: sfiora/trascina sul canvas</li>
+          </ul>
+        </div>
+        <div class="panel actions">
+          <button id="btnPause" class="full" type="button">⏸ Pausa</button>
+          <button id="btnRestart" class="ghost" type="button">↺ Restart</button>
+        </div>
+      </aside>
     </main>
-
-    <footer class="dock">
-      <div class="panel">
-        <strong>Stato</strong> — Punti <span id="score">0</span> • Vite <span id="lives">3</span> • Livello <span id="level">1</span>
-      </div>
-      <div class="panel actions">
-        <button id="btnPause" class="full" type="button">⏸ Pausa</button>
-        <button id="btnRestart" class="ghost" type="button">↺ Restart</button>
-      </div>
-    </footer>
   </div>
 
-  <div id="overlay" class="overlay" role="dialog" aria-modal="true">
+  <div id="modeOverlay" class="overlay" role="dialog" aria-modal="true">
+    <div class="card">
+      <h2>Seleziona dispositivo</h2>
+      <p>Scegli per un’esperienza ottimizzata (puoi cambiare dal menu in alto).</p>
+      <div class="mode-grid">
+        <button class="mode-btn" data-mode="iphone">🍎 iPhone</button>
+        <button class="mode-btn" data-mode="samsung">🤖 Samsung / Android</button>
+        <button class="mode-btn" data-mode="laptop">💻 Laptop / Desktop</button>
+        <button class="mode-btn ghost" data-mode="auto">Auto</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="overlay" class="overlay hidden" role="dialog" aria-modal="true">
     <div class="card">
       <h2 id="ovTitle">Breakout — pezzaliAPP</h2>
       <p id="ovText">Tocca o premi <strong>Spazio</strong> per iniziare.</p>
@@ -60,7 +98,6 @@
 
   <script src="app.js"></script>
   <script>
-    document.addEventListener('touchmove', e => e.preventDefault(), {passive:false});
     document.addEventListener('gesturestart', e => e.preventDefault());
     document.addEventListener('dblclick', e => e.preventDefault(), {passive:false});
     if ('serviceWorker' in navigator) {

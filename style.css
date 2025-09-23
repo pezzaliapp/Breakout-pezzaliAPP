@@ -1,22 +1,39 @@
-*{box-sizing:border-box}html,body{margin:0;height:100%}
-html,body{overscroll-behavior:none;background:#0f1320;color:#e9eef5}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
-*{user-select:none;-webkit-user-select:none;touch-action:manipulation}
-.topbar{position:sticky;top:0;background:#0b5fff;color:#fff;display:flex;align-items:center;gap:10px;padding:10px 14px;box-shadow:0 2px 12px rgba(0,0,0,.25)}
+:root{--vh:1vh}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:calc(var(--vh, 1vh) * 100)}
+html,body{overflow:hidden;background:#0f1320;color:#e9eef5;-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-user-select:none;user-select:none}
+
+.app{position:fixed;inset:0;display:grid;grid-template-rows:auto 1fr}
+.topbar{background:#0b5fff;color:#fff;display:flex;align-items:center;gap:12px;justify-content:space-between;padding:10px 14px;box-shadow:0 2px 12px rgba(0,0,0,.25);z-index:2}
 .topbar img{width:28px;height:28px;border-radius:6px}
-.layout{display:grid;grid-template-columns:minmax(260px,1fr) 320px;gap:16px;max-width:1100px;margin:0 auto;padding:16px}
-.left{display:flex;flex-direction:column;align-items:center;gap:12px}
-.right{display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 64px);overflow:auto}
-canvas{background:#12182a;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.35);width:100%;max-width:560px;height:auto;outline:none}
+.hud-mini{opacity:.95;font-weight:600}
+.mode-menu select{background:rgba(0,0,0,.15);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:10px;padding:6px 8px;font-size:14px}
+.drawer-toggle{display:none;background:rgba(0,0,0,.1);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:10px;padding:8px 10px;font-size:18px}
+
+.layout{display:grid;grid-template-columns:1fr 320px;gap:16px;max-width:1400px;margin:0 auto;padding:12px;height:100%}
+.left{display:flex;flex-direction:column;align-items:center;gap:12px;min-width:0}
+.right{display:flex;flex-direction:column;gap:12px;max-height:100%;overflow:auto;min-width:0}
+.game-wrap{border-radius:12px;overflow:hidden;display:grid;place-items:center}
+canvas{display:block;background:#12182a;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.35);outline:none;touch-action:none}
+
 .panel{background:#151b31;border:1px solid rgba(255,255,255,.06);padding:12px;border-radius:12px}
 .panel h2{margin:.2rem 0 .5rem 0;font-size:1rem}
 .keys{margin:.3rem 0 .2rem 1rem}
-.full{background:#0b5fff;color:white;border:0;padding:12px 14px;border-radius:10px;font-size:18px}
-.ghost{background:transparent;border:1px solid rgba(255,255,255,.25);color:#e9eef5;padding:10px 12px;border-radius:10px;font-size:18px}
-.muted{opacity:.8}.small{font-size:.85rem}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.muted.small{opacity:.8;font-size:.88rem}
+
+.mobile-controls{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:900px}
+.mobile-controls button{background:#1b2342;color:#fff;border:1px solid rgba(255,255,255,.12);padding:14px;border-radius:12px;font-size:18px;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+
 .overlay{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);z-index:10}
 .hidden{display:none !important}
 .card{background:#151b31;border:1px solid rgba(255,255,255,.1);padding:18px 16px;border-radius:14px;max-width:360px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.45)}
-.mobile-controls{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:560px}
-.mobile-controls button{background:#1b2342;color:#fff;border:1px solid rgba(255,255,255,.12);padding:14px;border-radius:12px;font-size:18px;-webkit-tap-highlight-color:transparent}
-@media (max-width:860px){.layout{grid-template-columns:1fr}}
+
+@media (max-width:1100px){
+  .layout{grid-template-columns:1fr}
+  .drawer-toggle{display:inline-block}
+  .right{position:fixed;left:0;right:0;bottom:-60%;background:#0f1320;border-top:1px solid rgba(255,255,255,.1);padding:12px 12px 16px;border-radius:14px 14px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.5);transition:transform .25s ease;transform:translateY(100%);max-height:60%;overflow:auto}
+  .right.open{transform:translateY(0)}
+  .hud-mini{display:block}
+}

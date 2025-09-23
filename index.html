@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
   <meta name="theme-color" content="#0b5fff" />
   <title>Breakout — pezzaliAPP</title>
   <meta name="description" content="Breakout/Arkanoid PWA: offline, installabile, tastiera/mouse/touch.">
@@ -14,81 +14,49 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="app">
-    <header class="topbar">
-      <div class="brand">
-        <img src="icons/icon-192.png" alt="Icona" />
-        <h1>Breakout — pezzaliAPP</h1>
-      </div>
-      <div class="hud-mini">
-        <span id="hPts">0</span> • <span id="hLiv">L1</span> • <span id="hVit">♥3</span>
-      </div>
-      <div class="mode-menu">
-        <select id="modeSelect" title="Modalità dispositivo">
-          <option value="auto">Auto</option>
-          <option value="iphone">iPhone</option>
-          <option value="samsung">Samsung / Android</option>
-          <option value="laptop">Laptop / Desktop</option>
-        </select>
-      </div>
-      <button class="drawer-toggle" id="drawerToggle" aria-controls="drawer" aria-expanded="false">☰</button>
-    </header>
-
-    <main class="layout">
-      <section class="left">
-        <div class="game-wrap">
-          <canvas id="game" width="360" height="640" tabindex="0" aria-label="Campo di gioco Breakout"></canvas>
-        </div>
-        <div class="mobile-controls" aria-label="Controlli touch">
-          <button id="btnLeft" type="button" aria-label="Sinistra">◀︎</button>
-          <button id="btnLaunch" type="button" aria-label="Lancia">⤴︎</button>
-          <button id="btnRight" type="button" aria-label="Destra">▶︎</button>
-        </div>
-      </section>
-
-      <aside class="right" id="drawer">
-        <div class="panel">
-          <h2>Stato</h2>
-          <p>Punteggio: <strong id="score">0</strong></p>
-          <p>Vite: <strong id="lives">3</strong></p>
-          <p>Livello: <strong id="level">1</strong></p>
-        </div>
-        <div class="panel">
-          <h2>Comandi</h2>
-          <ul class="keys">
-            <li>◀︎/▶︎: Muovi • Mouse: segui palla</li>
-            <li>Spazio/⤴︎: Lancia • P: Pausa • R: Restart</li>
-            <li>Touch: sfiora/trascina sul canvas</li>
-          </ul>
-        </div>
-        <div class="panel actions">
-          <button id="btnPause" class="full" type="button">⏸ Pausa</button>
-          <button id="btnRestart" class="ghost" type="button">↺ Restart</button>
-        </div>
-        <p class="muted small"><a href="readme.html">Guida (readme)</a></p>
-      </aside>
-    </main>
-  </div>
-
-  <!-- First-run device chooser -->
-  <div id="modeOverlay" class="overlay" role="dialog" aria-modal="true">
-    <div class="card">
-      <h2>Seleziona dispositivo</h2>
-      <p>Scegli per un’esperienza ottimizzata (puoi cambiare dal menu in alto).</p>
-      <div class="mode-grid">
-        <button class="mode-btn" data-mode="iphone">🍎 iPhone</button>
-        <button class="mode-btn" data-mode="samsung">🤖 Samsung / Android</button>
-        <button class="mode-btn" data-mode="laptop">💻 Laptop / Desktop</button>
-        <button class="mode-btn ghost" data-mode="auto">Auto</button>
-      </div>
+  <header class="topbar">
+    <div class="brand">
+      <img src="icons/icon-192.png" alt="Icona" />
+      <h1>Breakout — pezzaliAPP</h1>
     </div>
-  </div>
+  </header>
 
-  <div id="overlay" class="overlay hidden" role="dialog" aria-modal="true">
+  <main class="layout">
+    <section class="left">
+      <canvas id="game" width="360" height="640" tabindex="0" aria-label="Campo di gioco Breakout"></canvas>
+      <div class="mobile-controls">
+        <button id="btnLeft" aria-label="Sinistra">◀︎</button>
+        <button id="btnRight" aria-label="Destra">▶︎</button>
+        <button id="btnLaunch" aria-label="Lancia">⤴︎</button>
+      </div>
+    </section>
+    <section class="right">
+      <div class="panel">
+        <h2>Stato</h2>
+        <p>Punteggio: <strong id="score">0</strong></p>
+        <p>Vite: <strong id="lives">3</strong></p>
+        <p>Livello: <strong id="level">1</strong></p>
+      </div>
+      <div class="panel">
+        <h2>Comandi</h2>
+        <ul class="keys">
+          <li>◀︎/▶︎: Muovi • Mouse: segui palla</li>
+          <li>Spazio: Lancia</li>
+          <li>P: Pausa • R: Restart</li>
+        </ul>
+      </div>
+      <button id="btnPause" class="full">⏸ Pausa</button>
+      <button id="btnRestart" class="ghost">↺ Restart</button>
+      <p class="muted small">© 2025 pezzaliAPP — MIT • Offline-ready • No-cloud</p>
+      <p class="muted small"><a href="readme.html">Guida (readme)</a></p>
+    </section>
+  </main>
+
+  <div id="overlay" class="overlay" role="dialog" aria-modal="true">
     <div class="card">
       <h2 id="ovTitle">Breakout — pezzaliAPP</h2>
       <p id="ovText">Tocca o premi <strong>Spazio</strong> per iniziare.</p>
-      <button id="ovBtn" type="button">Gioca</button>
+      <button id="ovBtn">Gioca</button>
     </div>
   </div>
 

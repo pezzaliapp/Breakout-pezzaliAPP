@@ -1,4 +1,4 @@
-:root{--vh:1vh; --safe-bottom: env(safe-area-inset-bottom, 0px)}
+:root{--vh:1vh}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 @supports (height: 100svh){ html,body{height:100svh} }
@@ -16,7 +16,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-s
 .layout{display:grid;grid-template-columns:1fr 320px;gap:16px;max-width:1200px;margin:0 auto;padding:12px}
 .left{display:flex;flex-direction:column;align-items:center;gap:12px}
 .right{display:flex;flex-direction:column;gap:12px;max-height:100%;overflow:auto}
-.game-wrap{width:100%;max-width:560px;aspect-ratio:9/16;border-radius:12px;overflow:hidden;display:grid;place-items:center;margin-bottom:var(--safe-bottom)}
+.game-wrap{width:100%;max-width:560px;aspect-ratio:9/16;border-radius:12px;overflow:hidden;display:grid;place-items:center}
 canvas{width:100%;height:100%;background:#12182a;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.35);outline:none;touch-action:none}
 
 .panel{background:#151b31;border:1px solid rgba(255,255,255,.06);padding:12px;border-radius:12px}

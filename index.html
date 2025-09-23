@@ -12,11 +12,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="stylesheet" href="style.css">
-  <script>
-    function setVH(){ document.documentElement.style.setProperty('--vh', (window.innerHeight*0.01) + 'px'); }
-    addEventListener('load', setVH); addEventListener('resize', setVH);
-    addEventListener('orientationchange', ()=>setTimeout(setVH,150));
-  </script>
 </head>
 <body>
   <div class="app">
@@ -42,7 +37,7 @@
     <main class="layout">
       <section class="left">
         <div class="game-wrap">
-          <canvas id="game" tabindex="0" aria-label="Campo di gioco Breakout"></canvas>
+          <canvas id="game" width="360" height="640" tabindex="0" aria-label="Campo di gioco Breakout"></canvas>
         </div>
         <div class="mobile-controls" aria-label="Controlli touch">
           <button id="btnLeft" type="button" aria-label="Sinistra">◀︎</button>
@@ -70,6 +65,7 @@
           <button id="btnPause" class="full" type="button">⏸ Pausa</button>
           <button id="btnRestart" class="ghost" type="button">↺ Restart</button>
         </div>
+        <p class="muted small"><a href="readme.html">Guida (readme)</a></p>
       </aside>
     </main>
   </div>
@@ -98,8 +94,6 @@
 
   <script src="app.js"></script>
   <script>
-    document.addEventListener('gesturestart', e => e.preventDefault());
-    document.addEventListener('dblclick', e => e.preventDefault(), {passive:false});
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js'));
     }

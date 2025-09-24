@@ -1,4 +1,4 @@
-/* Breakout — pezzaliAPP v9.2 (desktop-fit layout) */
+/* Breakout — pezzaliAPP v9.4 (pause/restart hard fixes) */
 // Mode
 const Mode = {
   load(){ return localStorage.getItem('breakout.mode') || 'auto'; },
@@ -25,32 +25,28 @@ drawerToggle && drawerToggle.addEventListener('click', ()=>{
   drawerToggle.setAttribute('aria-expanded', String(open));
 });
 
-// Canvas 360x640 with DPR scaling
+// Canvas
 const canvas=document.getElementById('game');
 const ctx=canvas.getContext('2d', {alpha:false});
 const VW=360, VH=640;
-
-// Desktop-fit layout manager: keeps canvas+controls fully visible
+const TOP_HUD=36;
+// Fit
 const wrap=document.getElementById('gameWrap');
 const topbar=document.getElementById('topbar');
 const controlsBar=document.getElementById('controlsBar');
-
 function fitLayout(){
   const vpH = window.innerHeight;
   const headerH = topbar?.offsetHeight || 0;
   const controlsH = controlsBar?.offsetHeight || 0;
-  const layoutPad = 24; // top+bottom padding of .layout
-  // Available vertical space for the canvas box (not including controls)
-  const availH = Math.max(200, vpH - headerH - controlsH - layoutPad - 20);
-  // 9:16 portrait aspect → width = h * 9/16, clamp to container width
-  const targetH = Math.min(availH, 900); // don't grow absurdly
-  const targetW = Math.min(targetH * 9/16, document.querySelector('.left').clientWidth - 4);
+  const layoutPad = 20;
+  const availH = Math.max(200, vpH - headerH - controlsH - layoutPad - 10);
+  const targetH = Math.min(availH, 920);
+  const left = document.querySelector('.left');
+  const leftW = left ? left.clientWidth : window.innerWidth;
+  const targetW = Math.min(targetH * 9/16, leftW - 4);
   wrap.style.width = `${Math.max(280, targetW)}px`;
-  // CSS height:auto keeps aspect by canvas intrinsic ratio
-  // Ensure controls visible (no overlap)
   controlsBar.style.maxWidth = wrap.style.width;
 }
-
 function setupCanvas(){
   const dpr=Math.max(1, Math.min(2, window.devicePixelRatio||1));
   canvas.width=VW*dpr; canvas.height=VH*dpr;
@@ -61,30 +57,23 @@ function setupCanvas(){
 setupCanvas();
 addEventListener('resize', ()=>{ setupCanvas(); });
 addEventListener('orientationchange', ()=>setTimeout(()=>{ setupCanvas(); },150));
+function toVirtual(x,y){ const r=canvas.getBoundingClientRect(); return { vx:(x-r.left)*VW/r.width, vy:(y-r.top)*VH/r.height }; }
 
-function toVirtual(x,y){
-  const r=canvas.getBoundingClientRect();
-  return { vx:(x-r.left)*VW/r.width, vy:(y-r.top)*VH/r.height };
-}
-
-// Game
+// Game state
 const CONFIG={ STEEL_HITS:3 };
-const G={ paddleW:88, paddleH:14, ballR:6, speed:4.5, lives:3 };
+const G={ paddleW:94, paddleH:14, ballR:6, speed:4.5, lives:3 };
 const COLS=10, ROWS=6, BW=30, BH=16, BGap=4;
 const BOffX=Math.floor((VW - (COLS*BW + (COLS-1)*BGap))/2);
-const BOffY=80;
+const BOffY=TOP_HUD + 28;
 const palette=['#63e6ff','#4dabf7','#845ef7','#ffd43b','#ffa94d','#51cf66','#ff6b6b','#ced4da'];
 
 let score=0, lives=G.lives, level=1, paused=false, started=false;
-let paddle={ x:VW/2 - G.paddleW/2, y:VH - 48, w:G.paddleW, h:G.paddleH };
+let paddle={ x:VW/2 - G.paddleW/2, y:VH - 72, w:G.paddleW, h:G.paddleH };
 let bricks=[], drops=[], balls=[];
+let keys={left:false,right:false};
 
-function clampPaddleY(){
-  const top=56, bottom=VH - G.paddleH - 6;
-  paddle.y=Math.max(top, Math.min(bottom, paddle.y));
-}
+function clampPaddleY(){ const top=TOP_HUD + 20, bottom=VH - G.paddleH - 24; paddle.y=Math.max(top, Math.min(bottom, paddle.y)); }
 function newBall(stuck=true){ return { x:VW/2, y:paddle.y - G.ballR - 1, r:G.ballR, vx:0, vy:0, stuck }; }
-
 function buildLevel(n){
   bricks=[]; const rows=ROWS + Math.min(4, n-1);
   for(let r=0;r<rows;r++){
@@ -99,23 +88,24 @@ function buildLevel(n){
     bricks.push(row);
   }
 }
-function resetAll(){
-  score=0; lives=G.lives; level=1; drops=[];
+function resetAll(showOverlay){
+  keys={left:false,right:false};
+  score=0; lives=G.lives; level=1; drops=[]; paused=false; started=false;
   buildLevel(level);
-  paddle.y=VH-48; clampPaddleY();
+  paddle.x=VW/2 - G.paddleW/2;
+  paddle.y=VH-72; clampPaddleY();
   balls=[ newBall(true) ];
   updateHUD();
-  showOverlay('Breakout — pezzaliAPP','Tocca o premi <strong>Spazio</strong> per iniziare.','Gioca');
+  if (showOverlay){ showOv('Breakout — pezzaliAPP','Tocca o premi <strong>Spazio</strong> per iniziare.','Gioca'); }
 }
-buildLevel(level);
-clampPaddleY();
-balls=[ newBall(true) ];
+buildLevel(level); clampPaddleY(); balls=[ newBall(true) ];
 
 // Overlay & HUD
 const overlay=document.getElementById('overlay');
+const ovCard=document.getElementById('ovCard');
 const ovBtn=document.getElementById('ovBtn');
-function hideOverlay(){ overlay.classList.add('hidden'); requestAnimationFrame(()=>canvas.focus()); }
-function showOverlay(t,html,btn){ document.getElementById('ovTitle').textContent=t; document.getElementById('ovText').innerHTML=html; ovBtn.textContent=btn||'Gioca'; overlay.classList.remove('hidden'); }
+function hideOv(){ overlay.classList.add('hidden'); requestAnimationFrame(()=>canvas.focus()); }
+function showOv(t,html,btn){ document.getElementById('ovTitle').textContent=t; document.getElementById('ovText').innerHTML=html; ovBtn.textContent=btn||'Gioca'; overlay.classList.remove('hidden'); }
 function updateHUD(){ document.getElementById('score').textContent=score; document.getElementById('lives').textContent=lives; document.getElementById('level').textContent=level; document.getElementById('hPts').textContent=score; document.getElementById('hLiv').textContent='L'+level; document.getElementById('hVit').textContent='♥'+lives; }
 
 // Input
@@ -123,18 +113,21 @@ document.addEventListener('touchmove', e=>e.preventDefault(), {passive:false});
 document.addEventListener('gesturestart', e=>e.preventDefault());
 document.addEventListener('dblclick', e=>e.preventDefault(), {passive:false});
 
-const keys={left:false,right:false};
-function isGameKey(c){ return ['ArrowLeft','ArrowRight','Space','KeyP','KeyR'].includes(c); }
-function startGame(){ if(!started){ started=true; hideOverlay(); launch(); requestAnimationFrame(()=>canvas.focus()); } }
+let canToggleAt=0;
+function debounceToggle(){ const now=performance.now(); if (now < canToggleAt) return false; canToggleAt=now+180; return true; }
 
-addEventListener('keydown', e=>{ if(!isGameKey(e.code)) return; e.preventDefault();
+function isGameKey(c){ return ['ArrowLeft','ArrowRight','Space','KeyP','KeyR'].includes(c); }
+function startGame(){ if(!started){ started=true; hideOv(); launch(); requestAnimationFrame(()=>canvas.focus()); } }
+
+window.addEventListener('keydown', e=>{ if(!isGameKey(e.code)) return;
+  e.preventDefault();
   if(e.code==='ArrowLeft') keys.left=true;
   if(e.code==='ArrowRight') keys.right=true;
   if(e.code==='Space') startGame();
-  if(e.code==='KeyP') togglePause();
-  if(e.code==='KeyR') resetAll();
+  if(e.code==='KeyP'){ if(debounceToggle()) togglePause(); }
+  if(e.code==='KeyR'){ quickRestart(); }
 },{passive:false});
-addEventListener('keyup', e=>{ if(!isGameKey(e.code)) return; e.preventDefault();
+window.addEventListener('keyup', e=>{ if(!isGameKey(e.code)) return; e.preventDefault();
   if(e.code==='ArrowLeft') keys.left=false;
   if(e.code==='ArrowRight') keys.right=false;
 },{passive:false});
@@ -142,6 +135,10 @@ addEventListener('keyup', e=>{ if(!isGameKey(e.code)) return; e.preventDefault()
 const btnLeft=document.getElementById('btnLeft');
 const btnRight=document.getElementById('btnRight');
 const btnLaunch=document.getElementById('btnLaunch');
+const btnRestart=document.getElementById('btnRestart');
+const btnRestartSide=document.getElementById('btnRestartSide');
+const btnPause=document.getElementById('btnPause');
+const btnPauseInline=document.getElementById('btnPauseInline');
 
 function movePaddleToClient(clientX){ const {vx}=toVirtual(clientX,0); paddle.x=Math.max(8, Math.min(VW - paddle.w - 8, vx - paddle.w/2)); }
 canvas.addEventListener('pointerdown', e=>{ startGame(); movePaddleToClient(e.clientX); e.preventDefault(); }, {passive:false});
@@ -156,12 +153,26 @@ btnLeft && btnLeft.addEventListener('pointerup',   ()=>{if(stopL)stopL();});
 btnRight && btnRight.addEventListener('pointerdown',e=>{stopR=hold(+1); e.preventDefault();},{passive:false});
 btnRight && btnRight.addEventListener('pointerup',  ()=>{if(stopR)stopR();});
 btnLaunch && btnLaunch.addEventListener('click', startGame);
-ovBtn && ovBtn.addEventListener('click', startGame);
-overlay && overlay.addEventListener('pointerdown', e=>{ if(e.target===overlay){ e.preventDefault(); startGame(); } }, {passive:false});
 
-// Mechanics (same as v9.1)
+// Pause/Restart buttons with robust handlers
+function quickRestart(){ resetAll(false); started=true; hideOv(); launch(); }
+function restartToMenu(){ resetAll(true); }
+
+function bindClick(el, fn){ if(!el) return; el.addEventListener('click', fn); el.addEventListener('pointerup', fn); }
+bindClick(btnRestart, quickRestart);
+bindClick(btnRestartSide, restartToMenu);
+bindClick(btnPause, ()=>{ if(debounceToggle()) togglePause(); });
+bindClick(btnPauseInline, ()=>{ if(debounceToggle()) togglePause(); });
+
+ovBtn && ovBtn.addEventListener('click', startGame);
+const overlayEl=document.getElementById('overlay');
+const ovCardEl=document.getElementById('ovCard');
+overlayEl && overlayEl.addEventListener('click', (e)=>{ if(e.target===overlayEl) startGame(); });
+ovCardEl && ovCardEl.addEventListener('click', (e)=>{ e.stopPropagation(); });
+
+// Mechanics
 function launch(){ balls.forEach(b=>{ if(b.stuck){ b.stuck=false; const angle=(-Math.PI/4)+Math.random()*Math.PI/2; b.vx=G.speed*Math.cos(angle); b.vy=-G.speed*Math.sin(angle); } }); }
-function togglePause(){ paused=!paused; if(paused) showOverlay('Pausa','Premi <strong>P</strong> o il bottone per riprendere.','Riprendi'); else hideOverlay(); }
+function togglePause(){ paused=!paused; if(paused) showOv('Pausa','Premi <strong>P</strong> o il bottone per riprendere.','Riprendi'); else hideOv(); }
 function spawnDrop(x,y){ const kinds=['L','S','M','1']; const k=kinds[(Math.random()*kinds.length)|0]; drops.push({x,y,vy:2.2,kind:k,dead:false}); }
 
 function step(dt){
@@ -178,7 +189,7 @@ function step(dt){
 
     if (b.x < b.r){ b.x=b.r; b.vx=Math.abs(b.vx); }
     if (b.x > VW - b.r){ b.x=VW - b.r; b.vx=-Math.abs(b.vx); }
-    if (b.y < b.r + 48){ b.y=b.r + 48; b.vy=Math.abs(b.vy); }
+    if (b.y < b.r + TOP_HUD){ b.y=b.r + TOP_HUD; b.vy=Math.abs(b.vy); }
 
     if (b.y > paddle.y - b.r && b.y < paddle.y + G.paddleH && b.x > paddle.x && b.x < paddle.x + paddle.w){
       b.y = paddle.y - b.r - 1;
@@ -215,7 +226,7 @@ function step(dt){
 
   if (!balls.length){
     lives--;
-    if (lives<=0){ showOverlay('Game Over', `Punteggio: <strong>${score}</strong>`, 'Rigioca'); resetAll(); return; }
+    if (lives<=0){ showOv('Game Over', `Punteggio: <strong>${score}</strong>`, 'Rigioca'); resetAll(true); return; }
     else { balls=[ newBall(true) ]; updateHUD(); }
   }
 
@@ -235,7 +246,7 @@ function step(dt){
   const remaining = bricks.flat().filter(br=>br.alive).length;
   if (remaining===0){
     level++; buildLevel(level);
-    paddle.y=VH-48; clampPaddleY();
+    paddle.y=VH-72; clampPaddleY();
     balls=[ newBall(true) ];
     balls.forEach(b=>{
       const s=Math.hypot(b.vx||G.speed, b.vy||G.speed)*1.08;
@@ -249,11 +260,11 @@ function step(dt){
 function render(){
   clampPaddleY();
   ctx.fillStyle='#0e1429'; ctx.fillRect(0,0,VW,VH);
-  ctx.fillStyle='#151b31'; ctx.fillRect(0,0,VW,48);
-  ctx.fillStyle='#e9eef5'; ctx.font='14px system-ui';
-  ctx.fillText(`Punti: ${score}`, 12, 30);
-  ctx.fillText(`Vite: ${lives}`, 120, 30);
-  ctx.fillText(`Livello: ${level}`, 200, 30);
+  ctx.fillStyle='#151b31'; ctx.fillRect(0,0,VW,TOP_HUD);
+  ctx.fillStyle='#e9eef5'; ctx.font='13px system-ui';
+  ctx.fillText(`Punti: ${score}`, 10, 24);
+  ctx.fillText(`Vite: ${lives}`, 112, 24);
+  ctx.fillText(`Livello: ${level}`, 190, 24);
 
   for (const row of bricks){
     for (const br of row){

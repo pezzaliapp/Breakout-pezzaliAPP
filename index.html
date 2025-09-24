@@ -20,18 +20,20 @@
         <img src="icons/icon-192.png" alt="Icona" />
         <h1>Breakout — pezzaliAPP</h1>
       </div>
-      <div class="hud-mini">
-        <span id="hPts">0</span> • <span id="hLiv">L1</span> • <span id="hVit">♥3</span>
+      <div class="right-side">
+        <div class="hud-mini">
+          <span id="hPts">0</span> • <span id="hLiv">L1</span> • <span id="hVit">♥3</span>
+        </div>
+        <div class="mode-menu">
+          <select id="modeSelect" title="Modalità dispositivo">
+            <option value="auto">Auto</option>
+            <option value="iphone">iPhone</option>
+            <option value="samsung">Samsung / Android</option>
+            <option value="laptop">Laptop / Desktop</option>
+          </select>
+        </div>
+        <button class="drawer-toggle" id="drawerToggle" aria-controls="drawer" aria-expanded="false">☰</button>
       </div>
-      <div class="mode-menu">
-        <select id="modeSelect" title="Modalità dispositivo">
-          <option value="auto">Auto</option>
-          <option value="iphone">iPhone</option>
-          <option value="samsung">Samsung / Android</option>
-          <option value="laptop">Laptop / Desktop</option>
-        </select>
-      </div>
-      <button class="drawer-toggle" id="drawerToggle" aria-controls="drawer" aria-expanded="false">☰</button>
     </header>
 
     <main class="layout" id="layout">
@@ -43,6 +45,8 @@
           <button id="btnLeft" type="button" aria-label="Sinistra">◀︎</button>
           <button id="btnLaunch" type="button" aria-label="Lancia">⤴︎</button>
           <button id="btnRight" type="button" aria-label="Destra">▶︎</button>
+          <button id="btnRestart" type="button" class="ghost" title="Restart rapido">↺</button>
+          <button id="btnPauseInline" type="button" class="ghost" title="Pausa">⏸</button>
         </div>
       </section>
 
@@ -58,12 +62,12 @@
           <ul class="keys">
             <li>◀︎/▶︎: Muovi • Mouse: segui palla</li>
             <li>Spazio/⤴︎: Lancia • P: Pausa • R: Restart</li>
-            <li>Touch: sfiora/trascina sul canvas</li>
+            <li>Touch: trascina sul canvas</li>
           </ul>
         </div>
         <div class="panel actions">
           <button id="btnPause" class="full" type="button">⏸ Pausa</button>
-          <button id="btnRestart" class="ghost" type="button">↺ Restart</button>
+          <button id="btnRestartSide" class="ghost" type="button">↺ Restart (menu)</button>
         </div>
         <p class="muted small"><a href="readme.html">Guida (readme)</a></p>
       </aside>
@@ -71,7 +75,7 @@
   </div>
 
   <div id="overlay" class="overlay" role="dialog" aria-modal="true">
-    <div class="card">
+    <div class="card" id="ovCard">
       <h2 id="ovTitle">Breakout — pezzaliAPP</h2>
       <p id="ovText">Tocca o premi <strong>Spazio</strong> per iniziare.</p>
       <button id="ovBtn" type="button">Gioca</button>

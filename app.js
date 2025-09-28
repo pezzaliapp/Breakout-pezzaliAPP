@@ -1,4 +1,4 @@
-/* Breakout — pezzaliAPP v9.4 (pause/restart hard fixes) */
+/* Breakout — pezzaliAPP v9.5 (no-pause + resume-on-life-loss) */
 // Mode
 const Mode = {
   load(){ return localStorage.getItem('breakout.mode') || 'auto'; },
@@ -67,7 +67,7 @@ const BOffX=Math.floor((VW - (COLS*BW + (COLS-1)*BGap))/2);
 const BOffY=TOP_HUD + 28;
 const palette=['#63e6ff','#4dabf7','#845ef7','#ffd43b','#ffa94d','#51cf66','#ff6b6b','#ced4da'];
 
-let score=0, lives=G.lives, level=1, paused=false, started=false;
+let score=0, lives=G.lives, level=1, started=false;
 let paddle={ x:VW/2 - G.paddleW/2, y:VH - 72, w:G.paddleW, h:G.paddleH };
 let bricks=[], drops=[], balls=[];
 let keys={left:false,right:false};
@@ -90,7 +90,7 @@ function buildLevel(n){
 }
 function resetAll(showOverlay){
   keys={left:false,right:false};
-  score=0; lives=G.lives; level=1; drops=[]; paused=false; started=false;
+  score=0; lives=G.lives; level=1; drops=[]; started=false;
   buildLevel(level);
   paddle.x=VW/2 - G.paddleW/2;
   paddle.y=VH-72; clampPaddleY();
@@ -113,18 +113,27 @@ document.addEventListener('touchmove', e=>e.preventDefault(), {passive:false});
 document.addEventListener('gesturestart', e=>e.preventDefault());
 document.addEventListener('dblclick', e=>e.preventDefault(), {passive:false});
 
+// (debounce left because only restart uses it now)
 let canToggleAt=0;
 function debounceToggle(){ const now=performance.now(); if (now < canToggleAt) return false; canToggleAt=now+180; return true; }
 
-function isGameKey(c){ return ['ArrowLeft','ArrowRight','Space','KeyP','KeyR'].includes(c); }
-function startGame(){ if(!started){ started=true; hideOv(); launch(); requestAnimationFrame(()=>canvas.focus()); } }
+function isGameKey(c){ return ['ArrowLeft','ArrowRight','Space','KeyR'].includes(c); }
+
+// Start or resume helper
+function play(){ 
+  if (!started) started = true;
+  hideOv();
+  // se c'è una palla "stuck" la lancio
+  let anyStuck = false;
+  for (const b of balls){ if (b.stuck){ anyStuck=true; break; } }
+  if (anyStuck) launch();
+}
 
 window.addEventListener('keydown', e=>{ if(!isGameKey(e.code)) return;
   e.preventDefault();
   if(e.code==='ArrowLeft') keys.left=true;
   if(e.code==='ArrowRight') keys.right=true;
-  if(e.code==='Space') startGame();
-  if(e.code==='KeyP'){ if(debounceToggle()) togglePause(); }
+  if(e.code==='Space') play();
   if(e.code==='KeyR'){ quickRestart(); }
 },{passive:false});
 window.addEventListener('keyup', e=>{ if(!isGameKey(e.code)) return; e.preventDefault();
@@ -137,13 +146,11 @@ const btnRight=document.getElementById('btnRight');
 const btnLaunch=document.getElementById('btnLaunch');
 const btnRestart=document.getElementById('btnRestart');
 const btnRestartSide=document.getElementById('btnRestartSide');
-const btnPause=document.getElementById('btnPause');
-const btnPauseInline=document.getElementById('btnPauseInline');
 
 function movePaddleToClient(clientX){ const {vx}=toVirtual(clientX,0); paddle.x=Math.max(8, Math.min(VW - paddle.w - 8, vx - paddle.w/2)); }
-canvas.addEventListener('pointerdown', e=>{ startGame(); movePaddleToClient(e.clientX); e.preventDefault(); }, {passive:false});
+canvas.addEventListener('pointerdown', e=>{ play(); movePaddleToClient(e.clientX); e.preventDefault(); }, {passive:false});
 canvas.addEventListener('pointermove', e=>{ movePaddleToClient(e.clientX); e.preventDefault(); }, {passive:false});
-canvas.addEventListener('touchstart', e=>{ if(e.touches[0]){ startGame(); movePaddleToClient(e.touches[0].clientX); } e.preventDefault(); }, {passive:false});
+canvas.addEventListener('touchstart', e=>{ if(e.touches[0]){ play(); movePaddleToClient(e.touches[0].clientX); } e.preventDefault(); }, {passive:false});
 canvas.addEventListener('touchmove', e=>{ if(e.touches[0]) movePaddleToClient(e.touches[0].clientX); e.preventDefault(); }, {passive:false});
 
 function hold(dir){ const iv=setInterval(()=>{ if(dir<0) keys.left=true; else keys.right=true; },16); return ()=>{clearInterval(iv); keys.left=false; keys.right=false;}; }
@@ -152,31 +159,29 @@ btnLeft && btnLeft.addEventListener('pointerdown', e=>{stopL=hold(-1); e.prevent
 btnLeft && btnLeft.addEventListener('pointerup',   ()=>{if(stopL)stopL();});
 btnRight && btnRight.addEventListener('pointerdown',e=>{stopR=hold(+1); e.preventDefault();},{passive:false});
 btnRight && btnRight.addEventListener('pointerup',  ()=>{if(stopR)stopR();});
-btnLaunch && btnLaunch.addEventListener('click', startGame);
+btnLaunch && btnLaunch.addEventListener('click', play);
 
-// Pause/Restart buttons with robust handlers
+// Restart buttons
 function quickRestart(){ resetAll(false); started=true; hideOv(); launch(); }
 function restartToMenu(){ resetAll(true); }
-
 function bindClick(el, fn){ if(!el) return; el.addEventListener('click', fn); el.addEventListener('pointerup', fn); }
 bindClick(btnRestart, quickRestart);
 bindClick(btnRestartSide, restartToMenu);
-bindClick(btnPause, ()=>{ if(debounceToggle()) togglePause(); });
-bindClick(btnPauseInline, ()=>{ if(debounceToggle()) togglePause(); });
 
-ovBtn && ovBtn.addEventListener('click', startGame);
+// Overlay click → play
+ovBtn && ovBtn.addEventListener('click', play);
 const overlayEl=document.getElementById('overlay');
 const ovCardEl=document.getElementById('ovCard');
-overlayEl && overlayEl.addEventListener('click', (e)=>{ if(e.target===overlayEl) startGame(); });
+overlayEl && overlayEl.addEventListener('click', (e)=>{ if(e.target===overlayEl) play(); });
 ovCardEl && ovCardEl.addEventListener('click', (e)=>{ e.stopPropagation(); });
 
 // Mechanics
 function launch(){ balls.forEach(b=>{ if(b.stuck){ b.stuck=false; const angle=(-Math.PI/4)+Math.random()*Math.PI/2; b.vx=G.speed*Math.cos(angle); b.vy=-G.speed*Math.sin(angle); } }); }
-function togglePause(){ paused=!paused; if(paused) showOv('Pausa','Premi <strong>P</strong> o il bottone per riprendere.','Riprendi'); else hideOv(); }
 function spawnDrop(x,y){ const kinds=['L','S','M','1']; const k=kinds[(Math.random()*kinds.length)|0]; drops.push({x,y,vy:2.2,kind:k,dead:false}); }
 
 function step(dt){
-  if (!started || paused){ render(); return; }
+  if (!started){ render(); return; }
+
   const pv=6.2;
   if (keys.left) paddle.x -= pv;
   if (keys.right) paddle.x += pv;
@@ -191,6 +196,7 @@ function step(dt){
     if (b.x > VW - b.r){ b.x=VW - b.r; b.vx=-Math.abs(b.vx); }
     if (b.y < b.r + TOP_HUD){ b.y=b.r + TOP_HUD; b.vy=Math.abs(b.vy); }
 
+    // Paddle
     if (b.y > paddle.y - b.r && b.y < paddle.y + G.paddleH && b.x > paddle.x && b.x < paddle.x + paddle.w){
       b.y = paddle.y - b.r - 1;
       const hit=(b.x - (paddle.x + paddle.w/2))/(paddle.w/2);
@@ -201,6 +207,7 @@ function step(dt){
       b.vy = -Math.abs(speed*Math.cos(ang));
     }
 
+    // Bricks
     for (const row of bricks){
       for (const br of row){
         if (!br.alive) continue;
@@ -218,18 +225,31 @@ function step(dt){
       }
     }
 
+    // Ball out
     if (b.y - b.r > VH){
       const i=balls.indexOf(b);
       if (i>=0) balls.splice(i,1);
     }
   }
 
+  // Life management
   if (!balls.length){
     lives--;
-    if (lives<=0){ showOv('Game Over', `Punteggio: <strong>${score}</strong>`, 'Rigioca'); resetAll(true); return; }
-    else { balls=[ newBall(true) ]; updateHUD(); }
+    updateHUD();
+    if (lives<=0){
+      showOv('Game Over', `Punteggio: <strong>${score}</strong>`, 'Rigioca');
+      resetAll(true);
+      return;
+    } else {
+      // Mostro overlay di ripresa senza perdere il livello/punteggio
+      balls=[ newBall(true) ];
+      showOv('Palla persa', `Vite rimaste: <strong>${lives}</strong><br>Tocca o premi <strong>Spazio</strong> per continuare.`, 'Continua');
+      // non resetto started: resta true; la ripresa avviene con play()
+      return;
+    }
   }
 
+  // Drops
   for (const d of drops){
     d.y += d.vy;
     if (d.y > VH+20) d.dead=true;
@@ -243,6 +263,7 @@ function step(dt){
   }
   drops = drops.filter(d=>!d.dead);
 
+  // Level clear
   const remaining = bricks.flat().filter(br=>br.alive).length;
   if (remaining===0){
     level++; buildLevel(level);
@@ -254,6 +275,7 @@ function step(dt){
       b.vx=s*Math.cos(ang); b.vy=s*Math.sin(ang);
     });
     updateHUD();
+    showOv(`Livello ${level}`, `Tocca o premi <strong>Spazio</strong> per continuare.`, 'Continua');
   }
 }
 
